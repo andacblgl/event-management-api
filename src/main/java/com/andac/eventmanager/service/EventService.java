@@ -1,10 +1,7 @@
 package com.andac.eventmanager.service;
 
-// Bu sınıf, Event nesneleri için iş mantığını (business logic) içerir.
-// Controller ile Repository arasındaki katmandır.
-// Veritabanına kayıt, silme, güncelleme gibi işlemleri burada tanımlarız.
-
 import com.andac.eventmanager.entity.Event;
+import com.andac.eventmanager.entity.User;
 import com.andac.eventmanager.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,29 +9,43 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-@Service // Bu sınıfın bir servis (iş mantığı) sınıfı olduğunu Spring’e bildirir
+/**
+ * EventService, etkinliklerle ilgili tüm iş mantığını barındırır.
+ * Etkinlik oluşturma, güncelleme, silme ve kullanıcıları listeleme gibi işlemler burada yapılır.
+ */
+
+@Service
 public class EventService {
 
-    @Autowired // Spring, EventRepository’yi otomatik olarak buraya enjekte eder
+    @Autowired
     private EventRepository eventRepository;
 
-    // Tüm etkinlikleri getirir
+    // Tüm etkinlikleri getir
     public List<Event> getAllEvents() {
         return eventRepository.findAll();
     }
 
-    // Belirli bir ID’ye sahip etkinliği getirir
+    // Belirli ID’ye sahip etkinliği getir
     public Optional<Event> getEventById(Long id) {
         return eventRepository.findById(id);
     }
 
-    // Yeni bir etkinlik oluşturur veya var olanı günceller
+    // Etkinlik oluştur veya güncelle
     public Event createOrUpdateEvent(Event event) {
         return eventRepository.save(event);
     }
 
-    // Etkinliği ID ile siler
+    // Etkinliği sil
     public void deleteEvent(Long id) {
         eventRepository.deleteById(id);
+    }
+
+    // Etkinliğe ait kullanıcı listesini getir
+    public List<User> getUsersByEvent(Long eventId) {
+        Optional<Event> eventOptional = eventRepository.findById(eventId);
+        if (eventOptional.isEmpty()) {
+            throw new RuntimeException("Etkinlik bulunamadı.");
+        }
+        return eventOptional.get().getUsers();
     }
 }

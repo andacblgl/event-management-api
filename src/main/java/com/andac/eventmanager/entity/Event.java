@@ -2,38 +2,45 @@ package com.andac.eventmanager.entity;
 
 // Bu sınıf, sistemdeki etkinlikleri (event) temsil eder.
 // Her bir Event nesnesi, bir etkinliğe ait başlık, açıklama, konum, tarih, kapasite ve kalan bilet bilgilerini tutar.
-// Bu sınıf @Entity anotasyonu ile işaretlendiği için, veritabanında "events" isimli bir tabloya karşılık gelir.
+// Ayrıca bu sınıf, etkinliğe katılan kullanıcıları da (User) içerir.
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity // Bu anotasyon, bu sınıfın bir JPA varlığı (entity) olduğunu belirtir
-@Table(name = "events") // Bu sınıfın veritabanındaki karşılık gelen tablo adının "events" olduğunu belirtir
-@Getter // Lombok kütüphanesi sayesinde tüm getter (getId, getTitle vs) metotları otomatik oluşturulur
-@Setter // Aynı şekilde tüm setter (setId, setTitle vs) metotları da otomatik oluşur
-
+@Table(name = "events") // Veritabanında karşılık gelen tablo adı "events" olacak
+@Getter // Lombok sayesinde tüm getter'lar otomatik oluşur
+@Setter // Lombok sayesinde tüm setter'lar otomatik oluşur
 public class Event {
 
-    @Id // Bu alan tablodaki birincil anahtar (primary key) olacak
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // ID değeri veritabanı tarafından otomatik artan şekilde oluşturulacak
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Otomatik artan birincil anahtar
+    private Long id;
 
+    private String title;        // Etkinlik başlığı
+    private String description;  // Etkinlik açıklaması
+    private String location;     // Etkinlik yeri
+    private LocalDate date;      // Etkinlik tarihi
+    private int capacity;        // Toplam kapasite
+    private int ticketsAvailable; // Kalan bilet sayısı
 
-    private Long id; // Her etkinliğe özel benzersiz bir kimlik (ID)
+    // Etkinliğe katılan kullanıcıların listesi (OneToMany ilişkisi)
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<User> users = new ArrayList<>();
 
-    private String title; // Etkinliğin başlığı (örneğin: Konser, Tiyatro Gecesi)
+    // İstersen bu listeye elle kullanıcı da ekleyebilirsin:
+    public void addUser(User user) {
+        users.add(user);
+        user.setEvent(this);
+    }
 
-    private String description; // Etkinliğin açıklaması (örneğin: Bu etkinlik 90'lar Türkçe Pop konseridir.)
-
-    private String location; // Etkinliğin yapılacağı yer bilgisi (örneğin: İstanbul Harbiye Açıkhava)
-
-    private LocalDate date; // Etkinliğin tarihi (örneğin: 2025-08-15)
-
-    private int capacity; // Etkinliğe maksimum katılabilecek kişi sayısı (örneğin: 500)
-
-    private int ticketsAvailable; // Satılabilir mevcut bilet sayısı (örneğin: 120)
-
-
+    public void removeUser(User user) {
+        users.remove(user);
+        user.setEvent(null);
+    }
 }

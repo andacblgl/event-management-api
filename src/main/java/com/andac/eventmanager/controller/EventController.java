@@ -5,18 +5,24 @@ package com.andac.eventmanager.controller;
 
 import com.andac.eventmanager.entity.Event;
 import com.andac.eventmanager.service.EventService;
+import com.andac.eventmanager.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 
-@RestController // Bu sınıfın REST API controller olduğunu belirtir
+@RestController // Bu sınıfın bir REST controller olduğunu belirtir
 @RequestMapping("/events") // Tüm endpoint'ler /events ile başlar
 public class EventController {
 
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private ReservationService reservationService;
 
     // GET /events → Tüm etkinlikleri getirir
     @GetMapping
@@ -47,5 +53,17 @@ public class EventController {
     @DeleteMapping("/{id}")
     public void deleteEvent(@PathVariable Long id) {
         eventService.deleteEvent(id);
+    }
+
+    // POST /events/{id}/reserve → Etkinliğe rezervasyon yapar
+    @PostMapping("/{id}/reserve")
+    public ResponseEntity<String> reserveTicket(@PathVariable Long id) {
+        try {
+            reservationService.reserveTicket(id); // rezervasyon işlemi
+            return ResponseEntity.ok("Rezervasyon başarıyla yapıldı.");
+        } catch (RuntimeException e) {
+            // Kapasite doluysa veya başka bir hata varsa
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }
